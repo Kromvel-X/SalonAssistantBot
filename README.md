@@ -28,7 +28,7 @@ The Telegram bot provides three main commands:
 - Nutgram Telegram Framework
 - vlucas/phpdotenv for environment configuration
 - Google Cloud Vision API
-- WooCommerce REST API
+- automattic/woocommerce – PHP wrapper for WooCommerce REST API
 - Symfony Cache (PSR-16)
 - JSONL file-based storage for local data
 
