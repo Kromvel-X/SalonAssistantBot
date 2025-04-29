@@ -1,0 +1,19 @@
+# Ignore vendor folder
+/vendor/
+
+# Ignore environment files
+.env
+
+# Ignore cache, logs
+/cache/
+/storage/
+/uploads/
+*.log
+error_log
+
+# Ignore system files
+.DS_Store
+
+# Config files
+/config/
+sftp.json
