@@ -10,7 +10,6 @@ use SergiX44\Nutgram\Nutgram;
 use App\Command\CreateSalonCommand;
 use App\Command\CreateOrderCommand;
 use App\Command\StartCommand;
-use SergiX44\Nutgram\RunningMode\Webhook;
 use App\Middleware\ExceptionMiddleware;
 use App\Services\ErrorHandlerService;
 
@@ -19,9 +18,7 @@ class NslabBot extends Nutgram
     public function __construct($token, $config)
     {
         parent::__construct($token, $config);
-        $this->setRunningMode(Webhook::class);
         $this->init();
-        $this->run();
     }
 
     /**

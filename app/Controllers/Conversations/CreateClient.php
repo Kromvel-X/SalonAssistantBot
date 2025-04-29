@@ -15,6 +15,14 @@ use SergiX44\Nutgram\Telegram\Types\Keyboard\ReplyKeyboardRemove;
 use App\Infrastructure\Storage\FileStorage;
 use App\Repositories\ClientRepository;
 
+/**
+ * Class CreateClient
+ * @package App\Controllers\Conversations
+ *
+ * This class handles the conversation for creating a new client.
+ * It guides the user through the process of entering client information,
+ * including full name, email, phone number, and an optional note.
+ */
 class CreateClient extends Conversation
 {
     /**
@@ -23,6 +31,8 @@ class CreateClient extends Conversation
     private ClientDTO $clientDTO;
 
     /**
+     * The name of the method that will be called when the conversation starts
+     * 
      * @var string
      */
     protected ?string $step = 'startConversation';

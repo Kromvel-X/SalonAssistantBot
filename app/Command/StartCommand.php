@@ -6,6 +6,13 @@ use App\Bot\NslabBot;
 use SergiX44\Nutgram\Telegram\Types\Keyboard\KeyboardButton;
 use SergiX44\Nutgram\Telegram\Types\Keyboard\ReplyKeyboardMarkup;
 
+/**
+ * Class StartCommand
+ * @package App\Command
+ *
+ * This class handles the command to start the bot.
+ * It checks if the user has access and then sends a welcome message and shows all commands.
+ */
 class StartCommand
 {
     public function __invoke(NslabBot $bot):void

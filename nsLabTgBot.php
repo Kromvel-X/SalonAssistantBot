@@ -1,11 +1,11 @@
 <?php
 
-require_once __DIR__ . '/vendor/autoload.php';
 use Dotenv\Dotenv;
 use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 use Symfony\Component\Cache\Psr16Cache;
 use SergiX44\Nutgram\Configuration;
 use App\Bot\NslabBot;
+use SergiX44\Nutgram\RunningMode\Webhook;
 
 $dotenv = Dotenv::createImmutable(__DIR__);
 $dotenv->load();
@@ -16,4 +16,6 @@ $psr16Cache = new Psr16Cache($psr6Cache);
 
 $token = $_ENV['TELEGRAM_BOT_TOKEN'];
 $config = new Configuration(cache: $psr16Cache);
-new NslabBot($token, $config);
+$bot = new NslabBot($token, $config);
+$bot->setRunningMode(Webhook::class);
+$bot->run();

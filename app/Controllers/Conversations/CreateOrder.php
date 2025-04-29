@@ -35,12 +35,15 @@ class CreateOrder extends Conversation
     private ?OrderDTO $orderData = null;
 
     /**
+     * The order object
      * 
      * @var object
      */
     private ?object $order = null;
 
     /**
+     * The name of the method that will be called when the conversation starts
+     * 
      * @var string
      */
     protected ?string $step = 'startOrder';
@@ -59,7 +62,7 @@ class CreateOrder extends Conversation
     }
 
     /**
-     * Let's start ordering
+     * Start the order process
      *
      * @param NslabBot $bot bot instance
      * @return void
