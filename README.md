@@ -27,6 +27,7 @@ Telegram bot for simplified ordering with product photos, integration with WooCo
 ![Telegram Bot API](https://img.shields.io/badge/Telegram%20Bot-Nutgram-blue?logo=telegram)
 ![WooCommerce](https://img.shields.io/badge/WooCommerce-API-96588a)
 ![Google Cloud Vision](https://img.shields.io/badge/Google%20Vision-API-yellow)
+![PHPStan](https://img.shields.io/badge/PHPStan-Static%20Analysis-6f42c1?logo=php)
 
 ---
 
@@ -198,6 +199,21 @@ The bot works based on three key commands, each of which launches an independent
 📌 All steps are accompanied by validation, clarifying messages and convenient buttons (Telegram keyboard).  
 The bot automatically saves the necessary data, creates orders and sends all supporting documents.
 
+---
+
+## 🔍 Static Analysis with PHPStan
+
+This project uses [PHPStan](https://phpstan.org/) to perform static code analysis and catch potential bugs early.
+
+- **Strictness level**: `level 6`
+- **Config file**: `phpstan.neon`
+- **Memory limit recommended**: `512M` (to avoid memory exhaustion on larger codebases)
+
+#### ✅ Running Analysis
+
+```bash
+php -d memory_limit=512M vendor/bin/phpstan analyse -c phpstan.neon
+```
 ---
 
 ## 📄 License
