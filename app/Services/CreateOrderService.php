@@ -23,7 +23,7 @@ class CreateOrderService
     /**
      * @var CouponService|null
      */
-    private ?CouponService $couponCode = null;
+    private ?CouponService $couponService = null;
 
     public function __construct(Client $woocommerce)
     {
@@ -146,6 +146,6 @@ class CreateOrderService
     */
     private function getCouponService(Client $woocommerce): CouponService
     {
-        return $this->couponCode ??= new CouponService($woocommerce);
+        return $this->couponService ??= new CouponService($woocommerce);
     }
 }

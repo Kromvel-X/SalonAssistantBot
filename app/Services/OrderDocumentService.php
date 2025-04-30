@@ -14,6 +14,18 @@ class OrderDocumentService
      */
     private string $uploadsDir;
 
+    /**
+     * Type of document for invoices
+     * @var string
+     */
+    private const TYPE_INVOICE = 'invoice';
+
+    /**
+     * Type of document for receipts
+     * @var string
+     */
+    private const TYPE_RECEIPT = 'receipt';
+
     public function __construct(string $uploadsDir)
     {
         $this->uploadsDir = rtrim($uploadsDir, '/') . '/';
@@ -29,7 +41,7 @@ class OrderDocumentService
     {
         if(
             empty($documentType) 
-            || !in_array($documentType, ['invoice', 'receipt'])
+            || !in_array($documentType, [self::TYPE_INVOICE, self::TYPE_RECEIPT])
             || empty($orderID)
         ) {
             throw new BotException('Неверный тип документа или ID заказа.');
@@ -71,7 +83,7 @@ class OrderDocumentService
      */
     public function getFileUrl(string $documentType, int $orderID): string
     {
-        $typeDoc = $documentType === 'receipt' ? 'packing-slip' : 'invoice';
+        $typeDoc = $documentType === self::TYPE_RECEIPT ? 'packing-slip' : self::TYPE_INVOICE;
         $url = "{$_ENV['CUSTOM_WP_REST_REQUEST_ORDER_URL']}?order_id={$orderID}&document_type={$typeDoc}";
         $fetcher = new OrderFileFetcherService();
         $data = $fetcher->fetch($url);

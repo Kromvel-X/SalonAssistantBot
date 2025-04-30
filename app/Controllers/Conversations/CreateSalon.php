@@ -16,6 +16,7 @@ use SergiX44\Nutgram\Telegram\Types\Keyboard\KeyboardButton;
 use SergiX44\Nutgram\Telegram\Types\Keyboard\ReplyKeyboardMarkup;
 use SergiX44\Nutgram\Telegram\Types\Keyboard\ReplyKeyboardRemove;
 use App\DTO\SalonDTO;
+use App\Services\ErrorHandlerService;
 
 /**
  * Class CreateSalon
@@ -479,7 +480,13 @@ class CreateSalon extends Conversation
         $storage = new FileStorage($_ENV['SALON_FILE_STORAGE_DIR']);
         // Create a repository object that will work with the storage
         $salonRepository = new SalonRepository($storage);// Save the salon data
-        $salonRepository->save($this->salonDTO);
+        $this->errorHandler()->execute(
+            function () use ($salonRepository) {
+                $salonRepository->save($this->salonDTO);
+            },
+            $bot,
+            'Ошибка: не удалось сохранить данные о салоне.'
+        );
         $bot->sendMessage("Салон успешно создан и сохранен!");
     }
 
@@ -679,5 +686,15 @@ class CreateSalon extends Conversation
     private function initSalonDTO(): SalonDTO
     {
         return $this->salonDTO ??= new SalonDTO();
+    }
+
+    /**
+     * Get the error handler service
+     *
+     * @return ErrorHandlerService
+     */
+    private function errorHandler(): ErrorHandlerService
+    {
+        return new ErrorHandlerService();
     }
 }

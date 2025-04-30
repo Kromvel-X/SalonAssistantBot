@@ -14,6 +14,7 @@ use SergiX44\Nutgram\Telegram\Types\Keyboard\ReplyKeyboardMarkup;
 use SergiX44\Nutgram\Telegram\Types\Keyboard\ReplyKeyboardRemove;
 use App\Infrastructure\Storage\FileStorage;
 use App\Repositories\ClientRepository;
+use App\Services\ErrorHandlerService;
 
 /**
  * Class CreateClient
@@ -260,13 +261,19 @@ class CreateClient extends Conversation
      * @param NslabBot $bot
      * @return void
      */
-    public function complete(): void
+    public function complete(NslabBot $bot): void
     {
         // Create FileStorage object that will work with JSON file
         $storage = new FileStorage($_ENV['CLIENT_FILE_STORAGE_DIR']);
         // Create a repository object that will work with the storage
         $clientRepository = new ClientRepository($storage);// Save the salon data
-        $clientRepository->save($this->clientDTO);
+        $this->errorHandler()->execute(
+            function () use ($clientRepository) {
+                $clientRepository->save($this->clientDTO);
+            },
+            $bot,
+            'Ошибка: не удалось сохранить клиента'
+        );
     }
 
     /**
@@ -325,5 +332,15 @@ class CreateClient extends Conversation
     private function initClientDTO(): ClientDTO
     {
         return $this->clientDTO ??= new ClientDTO();
+    }
+
+    /**
+     * Get the error handler service
+     *
+     * @return ErrorHandlerService
+     */
+    private function errorHandler(): ErrorHandlerService
+    {
+        return new ErrorHandlerService();
     }
 }

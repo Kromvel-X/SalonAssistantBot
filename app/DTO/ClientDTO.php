@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\DTO;
 
-use App\Interfaces\JsonSerialize;
+use App\Interfaces\JsonSerializableInterface;
 use Ramsey\Uuid\Uuid;
 
-class ClientDTO implements JsonSerialize
+class ClientDTO implements JsonSerializableInterface
 {
     /**
      * Client's full name

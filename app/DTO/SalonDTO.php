@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\DTO;
 
-use App\Interfaces\JsonSerialize;
+use App\Interfaces\JsonSerializableInterface;
 use Ramsey\Uuid\Uuid;
 
 /**
  * Class SalonDTO
  * Data Transfer Object for Salon
  */
-class SalonDTO implements JsonSerialize
+class SalonDTO implements JsonSerializableInterface
 {
     /**
      * Salon name

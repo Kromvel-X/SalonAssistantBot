@@ -2,7 +2,7 @@
 
 namespace App\Interfaces;
 
-interface JsonSerialize
+interface JsonSerializableInterface
 {
     public function jsonSerialize(): array;
 }
