@@ -68,7 +68,7 @@ class CouponService
         if (count($response) === 0) {
             return null;
         }
-        return $response[0]['code'] ?? null;
+        return $response[0]->code ?? null;
     }
 
     /**
