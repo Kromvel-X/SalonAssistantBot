@@ -10,12 +10,16 @@ It combines three main functions:
 - 🏢 **Register a saloon** (`/add_saloon`)
 - 🧍 **Create a client** (`/add_client`)
 
-🔧 Based on Nutgram Conversation (Telegram FSM)  
-🧠 Uses Google Cloud Vision to recognize text from product images 
-🛒 Integrated with WooCommerce API  
-🧾 Sends documents about created order (invoice, receipt) to chat.  
-📁 Saves data in file system (JSONL)
 
+**Description of the main features:**
+- 🔧 Based on Nutgram Conversation (Telegram FSM)  
+- 🧠 Uses Google Cloud Vision to recognize text from product images 
+- 🛒 Integrated with WooCommerce API  
+- 🧾 Sends documents about created order (invoice, receipt) to chat.  
+- 📁 Saves data in file system (JSONL)
+- 📸 Sends photos of the salon and product to the manager and user
+- 📋 Creates a client card with all the information entered by the user
+- 📋 Creates a salon card with all the information entered by the user
 
 Telegram bot for simplified ordering with product photos, integration with WooCommerce, automatic SKU recognition by image and generation of orders with discounts. Created to automate work with customers and salons, as well as to simplify the ordering process.
 
