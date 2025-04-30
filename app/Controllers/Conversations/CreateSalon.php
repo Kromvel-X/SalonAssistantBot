@@ -508,7 +508,7 @@ class CreateSalon extends Conversation
         }
         $photo = end($message->photo);
         $file = $bot->getFile($photo->file_id);
-        $this->savePhoto($file, $photo->file_id, $bot);
+        $this->savePhoto($file, $photo->file_id);
         return true;
     }
 

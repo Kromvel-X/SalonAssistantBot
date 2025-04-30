@@ -1,0 +1,9 @@
+parameters:
+  level: 6
+  paths:
+    - app
+  ignoreErrors:
+    - message: '#Dead catch - Automattic\\WooCommerce\\HttpClient\\HttpClientException is never thrown in the try block#'
+      path: app/Services/ErrorHandlerService.php
+    - message: '#Dead catch - App\\Exceptions\\BotException is never thrown in the try block#'
+      path: app/Services/ErrorHandlerService.php

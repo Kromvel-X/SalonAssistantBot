@@ -24,7 +24,7 @@ class FileStorage
 
     /**
      * Read JSONL file
-     * @return array
+     * @return array<array<string, mixed>>
      */
     public function read(): array
     {
@@ -50,7 +50,7 @@ class FileStorage
 
     /**
      * Complete overwriting of JSONL file
-     * @param array $data
+     * @param array<mixed> $data
      * @return void
      */
     public function write(array $data): void
@@ -76,7 +76,7 @@ class FileStorage
 
     /**
      * Adding a new record to the end of JSONL file
-     * @param array $newData
+     * @param array<mixed> $newData
      * @return void
      */
     public function append(array $newData): void

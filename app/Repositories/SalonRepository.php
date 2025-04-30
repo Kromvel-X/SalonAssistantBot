@@ -26,7 +26,8 @@ class SalonRepository
 
     /**
      * Adds a new salon to the repository
-     * @return array
+     * @param SalonDTO $data Salon data transfer object
+     * @return void
      */
     public function save(SalonDTO $data): void
     {

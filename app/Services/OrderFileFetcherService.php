@@ -16,7 +16,7 @@ class OrderFileFetcherService
      * Fetches the file from the given URL and returns it as an array.
      *
      * @param string $url The URL to fetch the file from.
-     * @return array|null The fetched file as an array, or null on failure.
+     * @return array<string, mixed>|null The file content as an array, or null if the request fails.
      */
     public function fetch(string $url): ?array
     {

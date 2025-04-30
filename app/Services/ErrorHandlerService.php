@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Bot\NslabBot;
 use Automattic\WooCommerce\HttpClient\HttpClientException;
 use App\Exceptions\BotException;
+use SergiX44\Nutgram\Nutgram;
 
 /**
  * Class ErrorHandlerService
@@ -49,12 +50,16 @@ class ErrorHandlerService
 
     /**
      * Reports an error by logging it and sending a message to the admin and user.
-     * @param BotException  $e
-     * @param NslabBot|null $bot
+     * @param BotException|HttpClientException|\Throwable $e
+     * @param Nutgram|NslabBot|null $bot
      * @param string        $message
      * @return void
      */
-    public function report(\Throwable $e, ?NslabBot $bot, string $message): void
+    public function report(
+        BotException|HttpClientException|\Throwable $e, 
+        Nutgram|NslabBot|null $bot, 
+        string $message
+    ): void 
     {
         error_log("❗️" . $message .  "\n" . $e->getMessage() . "\n\n" . $e->getFile() . ':' . $e->getLine());
         if (is_null($bot)) {

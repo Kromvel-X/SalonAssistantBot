@@ -61,7 +61,7 @@ class OrderDocumentService
     public function saveFile(string $documentType, int $orderID, string $filePath): void
     {
         $fileUrl = $this->getFileUrl($documentType, $orderID);
-        if(is_null($fileUrl)){
+        if(empty($fileUrl)){
             throw new BotException("Ошибка: не удалось получить URL файла для документа {$documentType}.");
         }
         // Check if the file already exists

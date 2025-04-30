@@ -26,7 +26,8 @@ class ClientRepository
 
     /**
      * Adds a new client to the repository
-     * @return array
+     * @param ClientDTO $data Client data transfer object
+     * @return void
      */
     public function save(ClientDTO $data): void
     {

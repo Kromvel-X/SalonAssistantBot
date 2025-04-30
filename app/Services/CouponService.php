@@ -63,11 +63,12 @@ class CouponService
      */
     public function getCoupon(string $couponCode): ?string
     {
-        $coupon = $this->woocommerce->get('coupons', ['code' => $couponCode]);
-        if (empty($coupon)) {
+        /** @var array<int, \stdClass> $response */
+        $response = $this->woocommerce->get('coupons', ['code' => $couponCode]);
+        if (count($response) === 0) {
             return null;
         }
-        return $couponCode;
+        return $response[0]['code'] ?? null;
     }
 
     /**

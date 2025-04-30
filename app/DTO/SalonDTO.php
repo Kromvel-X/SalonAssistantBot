@@ -27,7 +27,7 @@ class SalonDTO implements JsonSerializableInterface
 
     /**
      * Salon photos
-     * @var array
+     * @var array<string, string>
      */
     private array $photos;
 
@@ -57,7 +57,7 @@ class SalonDTO implements JsonSerializableInterface
 
     /**
      * Salon social links
-     * @var array
+     * @var array<int, string>
      */
     private array $socLinks;
 
@@ -105,7 +105,8 @@ class SalonDTO implements JsonSerializableInterface
     /**
      * Set the photos of the salon
      *
-     * @param string $photo photo of the salon
+     * @param string $file_id telegram file ID of the photo
+     * @param string $url URL of the photo
      * @return void
      */
     public function setPhotos(string $file_id, string $url): void
@@ -202,7 +203,7 @@ class SalonDTO implements JsonSerializableInterface
     /**
      * Get the photos of the salon
      *
-     * @return array
+     * @return array<string, string>
      */
     public function getPhotos(): array
     {
@@ -252,7 +253,7 @@ class SalonDTO implements JsonSerializableInterface
     /**
      * Get the social links of the salon
      *
-     * @return array
+     * @return array<int, string>
      */
     public function getSocLinks(): array
     {
@@ -272,7 +273,7 @@ class SalonDTO implements JsonSerializableInterface
     /**
      * Transform the salon data into an array
      *
-     * @return array
+     * @return array{name: string, location: string, photos: array<string, string>, email: string, phone: string, person: string, promocode: string, socLinks: array<int, string>, note: string}
      */
     public function toArray(): array
     {
@@ -292,7 +293,7 @@ class SalonDTO implements JsonSerializableInterface
     /**
      * Serialize the salon data to JSON
      *
-     * @return array
+     * @return array<string, array{name: string, location: string, photos: array<string, string>, email: string, phone: string, person: string, promocode: string, socLinks: array<int, string>, note: string}>
      */
     public function jsonSerialize(): array
     {

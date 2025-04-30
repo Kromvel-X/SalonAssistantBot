@@ -156,7 +156,7 @@ class ClientDTO implements JsonSerializableInterface
     /**
      * Transform the client data into an array
      *
-     * @return array
+     * @return array{fullName: string, email: string, phone: string, note: string, dataCreated: int}
      */
     public function toArray(): array
     {
@@ -172,7 +172,7 @@ class ClientDTO implements JsonSerializableInterface
     /**
      * Serialize the salon data to JSON
      *
-     * @return array
+     * @return array<string, array{fullName: string, email: string, phone: string, note: string, dataCreated: int}>
      */
     public function jsonSerialize(): array
     {

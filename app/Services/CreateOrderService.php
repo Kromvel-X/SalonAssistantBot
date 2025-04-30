@@ -33,7 +33,7 @@ class CreateOrderService
     /**
      * Create an order in WooCommerce
      *
-     * @param array $productData
+     * @param array{products:array<int, array{sku:string, count:int}>, discount:array<string, int>, payment_method:string} $productData
      * @return object|null
      */
     public function createOrder(array $productData): ?object
@@ -54,7 +54,7 @@ class CreateOrderService
         ];
         $couponPercent = $productData['discount']['percent'] ?? null;
         if (!is_null($couponPercent)) {
-            $coupon = str_replace('%', '', $couponPercent);
+            $coupon = str_replace('%', '', (string)$couponPercent);
             $orderData['coupon_lines'] = [
                 ['code' => 'tgbot_yonka_' . $coupon],
             ];
@@ -70,22 +70,23 @@ class CreateOrderService
     /**
      * Get the product by SKU
      *
-     * @param array $productData
-     * @return array|null
+     * @param array{products:array<int, array{sku:string, count:int}>, discount:array<string, int>, payment_method:string} $productData
+     * @return array<int, array<mixed>>|null
      */
     public function getProductBySKU(array $productData): ?array
     {
         $lineItems = [];
         foreach ($productData['products'] as $product) {
+            /** @var array<int, \stdClass> $response */
             $response = $this->woocommerce->get('products', ['sku' => $product['sku']]);
-            if (!empty($response) && isset($response[0]->id)) {
+            if (count($response) > 0 && isset($response[0]->id)) {
                 $lineItems[] = [
                     'product_id' => $response[0]->id,
                     'quantity'   => $product['count'],
                 ];
             }
         }
-        if (empty($lineItems)) {
+        if (count($lineItems) === 0) {
             throw new BotException('Failed to find products by the SKUs transferred');
         }
         return $lineItems;
@@ -114,7 +115,7 @@ class CreateOrderService
      * Update the order with a coupon code
      *
      * @param int    $orderID
-     * @param array  $coupon_lines
+     * @param array<mixed>  $coupon_lines
      * @param string $discount
      * @return object
      */

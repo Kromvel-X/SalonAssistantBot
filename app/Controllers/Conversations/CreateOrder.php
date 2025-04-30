@@ -483,7 +483,7 @@ class CreateOrder extends Conversation
      *
      * @param string   $photoText text from photo
      * @param NslabBot $bot       bot instance
-     * @return string|false
+     * @return string|null
      */
     public function getRefNumber(string $photoText, NslabBot $bot): ?string
     {
