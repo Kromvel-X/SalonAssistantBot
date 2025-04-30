@@ -220,6 +220,7 @@ class CreateSalon extends Conversation
      */
     public function stepGetAnswerAboutPromocod(NslabBot $bot):void
     {
+        
         $this->deleteKeyboard($bot);
         $answer = $bot->message()->text;
         if($answer === 'Да'){
@@ -239,7 +240,34 @@ class CreateSalon extends Conversation
     public function stepRequestPromocodeName(NslabBot $bot):void
     {
         $bot->sendMessage('Укажите название для промокода на латинице (слитно, без пробелов, например: my-promocode или myPromocode)');
-        $this->next('stepAskAboutAdditionalPhoto');
+        $this->next('stepSavePromocode');
+    }
+
+    /**
+     * Save the promocode
+     * Move to the next step of the dialog: stepAskAboutAdditionalPhoto
+     *
+     * @param NslabBot $bot - bot instance
+     * @return void
+     */
+    public function stepSavePromocode(NslabBot $bot): void
+    {
+        $messageText = $bot->message()->text;
+        $bot->sendMessage($messageText);
+        if (
+            !empty($messageText) && 
+            $messageText !== 'Нет' && 
+            !$this->isValidPromocode($messageText)
+        ) {
+            $bot->sendMessage('Ошибка: некорректный промокод, повторите попытку');
+            $this->stepRequestPromocodeName($bot);
+            return;
+        }
+
+        $this->salonDTO->setPromocode($messageText);
+        $text = 'Загрузить дополнительную фотографию?';
+        $this->sendYesNoQuestion($bot, $text);
+        $this->next('stepAnswerAboutAdditionalPhoto');
     }
 
     /**
@@ -252,18 +280,6 @@ class CreateSalon extends Conversation
      */
     public function stepAskAboutAdditionalPhoto(NslabBot $bot):void
     {
-        $messageText = $bot->message()->text;
-        if (
-            !empty($messageText) && 
-            $messageText !== 'Нет' && 
-            !$this->isValidPromocode($messageText)
-        ) {
-            $bot->sendMessage('Ошибка: некорректный промокод, повторите попытку');
-            $this->stepRequestPromocodeName($bot);
-            return;
-        }
-
-        $this->salonDTO->setPromocode($messageText);
         $text = 'Загрузить дополнительную фотографию?';
         $this->sendYesNoQuestion($bot, $text);
         $this->next('stepAnswerAboutAdditionalPhoto');
@@ -462,8 +478,8 @@ class CreateSalon extends Conversation
     {
         $bot->sendMessage('Создаем салон...');
         $this->showCurrentsalon($bot);
-        $bot->sendMessage('Салон успешно создан');
         $this->complete($bot);
+        $bot->sendMessage('Салон успешно создан');
         $this->end();
     }
 
@@ -475,7 +491,6 @@ class CreateSalon extends Conversation
      */
     public function complete(NslabBot $bot): void
     {
-        $bot->sendMessage('Создаем салон...');
         // Create FileStorage object that will work with JSON file
         $storage = new FileStorage($_ENV['SALON_FILE_STORAGE_DIR']);
         // Create a repository object that will work with the storage
@@ -487,9 +502,7 @@ class CreateSalon extends Conversation
             $bot,
             'Ошибка: не удалось сохранить данные о салоне.'
         );
-        $bot->sendMessage("Салон успешно создан и сохранен!");
     }
-
 
     /**
      * Get a photo from the message
