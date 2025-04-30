@@ -27,6 +27,6 @@ class OrderFileFetcherService
         if (!$response) {
             return null;
         }
-        return json_decode($response, true);
+        return json_decode((string)$response, true);
     }
 }

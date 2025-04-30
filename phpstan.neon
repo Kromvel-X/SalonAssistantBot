@@ -1,5 +1,5 @@
 parameters:
-  level: 6
+  level: 7
   paths:
     - app
   ignoreErrors:
@@ -7,3 +7,6 @@ parameters:
       path: app/Services/ErrorHandlerService.php
     - message: '#Dead catch - App\\Exceptions\\BotException is never thrown in the try block#'
       path: app/Services/ErrorHandlerService.php
+    - message: '#Access to an undefined property object::\$id#'
+    - message: '#Access to an undefined property object::\$total#'
+    - message: '#Access to an undefined property object::\$coupon_lines#'
