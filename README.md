@@ -205,7 +205,7 @@ The bot automatically saves the necessary data, creates orders and sends all sup
 
 This project uses [PHPStan](https://phpstan.org/) to perform static code analysis and catch potential bugs early.
 
-- **Strictness level**: `level 6`
+- **Strictness level**: `level 8`
 - **Config file**: `phpstan.neon`
 - **Memory limit recommended**: `512M` (to avoid memory exhaustion on larger codebases)
 
