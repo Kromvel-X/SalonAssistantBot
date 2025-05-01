@@ -19,6 +19,7 @@ use App\Services\RefNumberExtractorService;
 use App\Services\ErrorHandlerService;
 use App\Factories\WoocommerceClientFactory;
 use App\DTO\OrderDTO;
+use App\Exceptions\BotException;
 
 /**
  * Class CreateOrder
@@ -32,7 +33,7 @@ class CreateOrder extends Conversation
     /**
      * @var OrderDTO
      */
-    private ?OrderDTO $orderData = null;
+    private ?OrderDTO $orderDTO = null;
 
     /**
      * The order object
@@ -56,7 +57,7 @@ class CreateOrder extends Conversation
     protected function getSerializableAttributes(): array
     {
         return [
-            'orderData'     => $this->orderData,
+            'orderDTO'     => $this->orderDTO,
             'order'         => $this->order,
         ];
     }
@@ -69,7 +70,7 @@ class CreateOrder extends Conversation
      */
     public function startOrder(NslabBot $bot):void
     {
-        $this->getOrderData(); // initialize the order data
+        $this->orderDTO(); // initialize the orderDTO
         $this->deleteKeyboard($bot);
         $bot->sendMessage('Загрузите фото продукта');
         $this->next('stepPhotoProduct');
@@ -99,7 +100,7 @@ class CreateOrder extends Conversation
             $this->startOrder($bot);
             return;
         }
-        $this->getOrderData()->setSku($skuNumber);
+        $this->orderDTO()->setSku($skuNumber);
         $this->requestProductCount($bot);
         $this->next('stepGetCountProduct');
     }
@@ -126,14 +127,14 @@ class CreateOrder extends Conversation
      */
     public function stepGetCountProduct(NslabBot $bot):void
     {
-        $count = $bot->message()->text;
+        $count = $bot->message()?->text;
         if (!is_numeric($count)) {
             $bot->sendMessage('Пожалуйста, введите число');
             $this->requestProductCount($bot);
             $this->next('stepGetCountProduct');
             return;
         }
-        $this->getOrderData()->setCount((int) $count);
+        $this->orderDTO()->setCount((int) $count);
         $this->deleteKeyboard($bot);
         $bot->sendMessage('Продукт добавлен к заказу');
         $this->sendAddMoreOrCheckout($bot);
@@ -163,7 +164,7 @@ class CreateOrder extends Conversation
     public function stepHandleChoice(NslabBot $bot):void
     {
         $this->deleteKeyboard($bot);
-        $answer = $bot->message()->text;
+        $answer = $bot->message()?->text;
         if($answer === 'Продолжить оформление заказа'){
             $this->stepAskAboutPromocode($bot);
             return;
@@ -200,7 +201,7 @@ class CreateOrder extends Conversation
     public function stepAnswerAboutPromocode(NslabBot $bot):void
     {
         $this->deleteKeyboard($bot);
-        $answer = $bot->message()->text;
+        $answer = $bot->message()?->text;
         if($answer !== 'Нет'){
             $this->stepGetDiscount($bot);
             return;
@@ -217,8 +218,8 @@ class CreateOrder extends Conversation
      */
     public function stepGetDiscount(NslabBot $bot):void
     {
-        $discount = $bot->message()->text;
-        $this->getOrderData()->setDiscountPercent((int) $discount);
+        $discount = $bot->message()?->text;
+        $this->orderDTO()->setDiscountPercent((int) $discount);
         $this->stepAskAboutPaymentMethod($bot);
     }
 
@@ -247,8 +248,13 @@ class CreateOrder extends Conversation
     public function stepAnswerAboutPaymentMethod(NslabBot $bot):void
     {
         $this->deleteKeyboard($bot);
-        $answer = $bot->message()->text;
-        $this->getOrderData()->setPaymentMethod($answer);
+        $answer = $bot->message()?->text;
+        if(is_null($answer)){
+            $bot->sendMessage('Выберите способ оплаты');
+            $this->stepAskAboutPaymentMethod($bot);
+            return;
+        }
+        $this->orderDTO()->setPaymentMethod($answer);
         $this->stepCreateOrder($bot);
     }
 
@@ -276,7 +282,7 @@ class CreateOrder extends Conversation
         $bot->sendMessage('Создаем заказ...');
         $this->errorHandler()->execute(
             function () {
-                $this->order = $this->orderService()->createOrder($this->getOrderData()->toArray());
+                $this->order = $this->orderService()->createOrder($this->orderDTO()->toArray());
             },
             $bot,
             'Ошибка при создании заказа.'
@@ -309,9 +315,9 @@ class CreateOrder extends Conversation
      */
     public function askAboutFinalDiscountToOrder(NslabBot $bot):void
     {
-        if($bot->message()->text === 'Нет'){ 
+        if($bot->message()?->text === 'Нет'){ 
             $this->saveOrder($bot);
-        }elseif ($bot->message()->text === 'Да'){
+        }elseif ($bot->message()?->text === 'Да'){
             $bot->sendMessage('Введите сумму скидки (число)');
             $this->next('answerAboutFinalDiscountToOrder');
         }else{
@@ -329,13 +335,13 @@ class CreateOrder extends Conversation
     public function answerAboutFinalDiscountToOrder(NslabBot $bot):void
     {
         $this->deleteKeyboard($bot);
-        $discount = $bot->message()->text;
-        $discount = str_replace(',', '.', $discount);
+        $discount = $bot->message()?->text;
         if(!is_numeric($discount) || empty($discount)){
             $bot->sendMessage('Скидка должна быть числом. Введите сумму скидки');
             $this->next('answerAboutFinalDiscountToOrder');
             return;
         }
+        $discount = str_replace(',', '.', $discount);
         $this->changeOrderPrice($bot, $discount);
     }
 
@@ -348,12 +354,22 @@ class CreateOrder extends Conversation
      */
     public function changeOrderPrice(NslabBot $bot, string $discount):void
     {
+        $orderId = $this->order?->id;
+        $couponLines = $this->order?->coupon_lines;
+
+        if ($orderId === null || $couponLines === null) {
+            $bot->sendMessage('Ошибка: заказ не найден. Пожалуйста, создайте новый заказ.');
+            $this->end();
+            $newCommand = new StartCommand();    
+            $newCommand->showAllCommand($bot);
+        }
+        
         $bot->sendMessage('Обновляем заказ...');
         $this->errorHandler()->execute(
-            function () use ($discount) {
+            function () use ($orderId, $couponLines, $discount) {
                 $this->order = $this->orderService()->updateOrder(
-                    $this->order->id, 
-                    $this->order->coupon_lines, 
+                    $orderId, 
+                    $couponLines, 
                     $discount
                 );
             },
@@ -361,7 +377,7 @@ class CreateOrder extends Conversation
             'Ошибка при обновлении заказа.'
         );
         if(!is_null($this->order)){
-            $this->getOrderData()->setDiscountFixed((int) $discount);
+            $this->orderDTO()->setDiscountFixed((int) $discount);
             $this->saveOrder($bot);
             return;
         }
@@ -377,11 +393,17 @@ class CreateOrder extends Conversation
      */
     public function saveOrder(NslabBot $bot):void
     {
-        // $bot->sendMessage("Создан новый заказ:\r\n". json_encode($this->getOrderData()), -1002011138460);
-        $bot->sendMessage('Заказ обновлен...');
-        $orderTotal = $this->order->total;
-        $bot->sendMessage("Сумма для оплаты: €{$orderTotal}");
-        $bot->sendMessage("Yonka - order {$this->order->id}");
+        $bot->sendMessage("Создан новый заказ:\r\n". json_encode($this->orderDTO()), -1002011138460);
+        $orderTotal = $this->order?->total;
+        $orderId = $this->order?->id;
+        $message = 'Заказ обновлен...';
+        if (!is_null($orderTotal)) {
+            $message .= "\r\n Сумма для оплаты: €" . $orderTotal;
+        }
+        if (!is_null($orderId)) {
+            $message .= "r\n ID заказа: " . $orderId;
+        }
+        $bot->sendMessage($message);
         $orderDocuments = $this->documentService($_ENV['ORDER_FILE_STORAGE_DIR']);
         $this->sendOrderFile($orderDocuments, $bot, 'invoice');
         $this->sendOrderFile($orderDocuments, $bot, 'receipt'); // corrected 'receipt' to 'receipt'
@@ -404,10 +426,18 @@ class CreateOrder extends Conversation
             $bot->sendMessage('Ошибка: тип файла не указан.');
             return;
         }
+        $orderId = $this->order?->id;
+        if ($orderId === null) {
+            $bot->sendMessage('Ошибка: заказ не найден. Пожалуйста, создайте новый заказ.');
+            $this->end();
+            $newCommand = new StartCommand();    
+            $newCommand->showAllCommand($bot);
+            return;
+        }
 
         $fileUrl = $this->errorHandler()->execute(
-            function () use ($orderDocument, $fileType) {
-                return $orderDocument->getDocumentPath($fileType, $this->order->id);
+            static function () use ($orderDocument, $fileType, $orderId) {
+                return $orderDocument->getDocumentPath($fileType, $orderId);
             },
             $bot,
             "Не удалось получить URL  файла для документа - {$fileType}"
@@ -445,13 +475,21 @@ class CreateOrder extends Conversation
     {
         $fileUrl = $this->errorHandler()->execute(
             function () use ($bot) {
-                $MessageType = $bot->message()->getType()->value;
-                if( $MessageType !== MessageType::PHOTO->value){
+                $MessageType = $bot->message()?->getType();
+                if( $MessageType?->value !== MessageType::PHOTO->value){
                     return null;
                 }
-                $photo = end($bot->message()->photo);
+                $photos = $bot->message()->photo ?? [];
+                if (empty($photos)) {
+                    throw new BotException("Ошибка: не удалось получить фото из сообщения.");
+                }
+                $photo = end($photos);
                 $file = $bot->getFile($photo->file_id);
-                return $file->url();
+                $url = $file?->url();
+                if (empty($url)) {
+                    throw new BotException("Ошибка: не удалось получить URL файла.");
+                }
+                return $url;
             },
             null,
         );
@@ -520,13 +558,13 @@ class CreateOrder extends Conversation
     }
 
     /**
-     * Get the order data
+     * Get the order DTO
      *
      * @return OrderDTO
      */
-    private function getOrderData(): OrderDTO
+    private function orderDTO(): OrderDTO
     {
-        return $this->orderData ??= new OrderDTO();
+        return $this->orderDTO ??= new OrderDTO();
     }
 
     /**

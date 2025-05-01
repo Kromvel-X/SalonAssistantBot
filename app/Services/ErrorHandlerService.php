@@ -67,8 +67,11 @@ class ErrorHandlerService
         }
         $bot->sendMessage($message . '. Пожалуйста, попробуйте еще раз.');
         $user = $bot->user();
+        $uerId = $user?->id ?: 'user id hidden';
+        $username = $user?->username ?: 'Инкогнито';
         $chat = $bot->chat();
-        $context = "User: {$user->id} ({$user->username})\nChat: {$chat->id}";
+        $chatId = $chat?->id ?: 'chat id hidden';
+        $context = "User: {$uerId} ({$username})\nChat: {$chatId}";
         $bot->sendMessage(
             "❗️ Ошибка:\n" . $e->getMessage() . "\n\n" . $context . "\n\n" . $e->getFile() . ':' . $e->getLine(),
             $this->adminChatId

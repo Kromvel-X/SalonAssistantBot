@@ -32,10 +32,7 @@ class StartCommand
             $bot->sendMessage('пользователь в черном списке');
             return;
         }
-        $userName = $bot->user()->username;
-        if(empty($userName )){
-            $userName = "Пользователь";
-        }
+        $userName = $bot->user()->username ?? "Пользователь";
         $bot->sendMessage("Привет, {$userName}!");
         $this->showAllCommand($bot);
     }

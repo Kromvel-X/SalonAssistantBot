@@ -54,7 +54,7 @@ class CreateSalon extends Conversation
      */
     public function startConversation(NslabBot $bot): void
     {
-        $this->initSalonDTO();// Инициализируем объект SalonDTO
+        $this->salonDTO();// Инициализируем объект SalonDTO
         $this->stepRequestSalonName($bot);
     }
 
@@ -80,8 +80,13 @@ class CreateSalon extends Conversation
      */
     public function stepRequestLocation(NslabBot $bot): void
     {
-        $messageText = $bot->message()->text;
-        $this->salonDTO->setName($messageText);
+        $messageText = $bot->message()?->text;
+        if(empty($messageText)){
+            $bot->sendMessage('Ошибка: некорректное название салона, повторите попытку');
+            $this->next('stepRequestSalonName');
+            return;
+        }
+        $this->salonDTO()->setName($messageText);
         $text = "Нажмите кнопку \"поделиться местоположением\":";
         $bot->sendMessage(
             text: $text,
@@ -111,7 +116,7 @@ class CreateSalon extends Conversation
             $this->stepRequestLocation($bot);
             return;
         }
-        $this->salonDTO->setLocation($location);
+        $this->salonDTO()->setLocation($location);
         $this->deleteKeyboard($bot);
         $bot->sendMessage('Загрузите фотографию салона');
         $this->next('stepRequestEmail');
@@ -149,21 +154,21 @@ class CreateSalon extends Conversation
     public function stepRequestPhone(NslabBot $bot):void
     {
         $message = $bot->message();
-        $MessageType = $message->getType()->value;
-        if( $MessageType === MessageType::PHOTO->value){
+        $MessageType = $message?->getType();
+        if( $MessageType?->value === MessageType::PHOTO->value){
             $this->getPhoto($bot);
             $this->next('stepRequestPhone');
             return;
         }
 
-        $messageText = $message->text;
-        $email = $this->validateEmail($messageText);
-        if(empty($email)){
-            $bot->sendMessage('Ошибка: некорректный емайл адресс, повторите попытку');
-            $this->next('stepRequestPhone');
+        $messageText = $message?->text;
+        if (!is_string($messageText) || !$this->validateEmail($messageText)) {
+            $bot->sendMessage('Ошибка: некорректный емайл адрес, повторите попытку');
+            $this->next('stepRequestEmail');
             return;
         }
-        $this->salonDTO->setEmail($messageText);
+
+        $this->salonDTO()->setEmail($messageText);
         $bot->sendMessage('Укажите телефон салона');
         $this->next('stepRequestContactPersonName');
     }
@@ -178,13 +183,13 @@ class CreateSalon extends Conversation
      */
     public function stepRequestContactPersonName(NslabBot $bot):void
     {
-        $messageText = $bot->message()->text;
+        $messageText = $bot->message()?->text;
         if(!is_numeric($messageText)){
             $bot->sendMessage('Ошибка: некорректный телефон, повторите попытку. Введите номер телефона салона.');
             $this->next('stepRequestContactPersonName');
             return;
         }
-        $this->salonDTO->setPhone($messageText);
+        $this->salonDTO()->setPhone($messageText);
 
         $bot->sendMessage('Укажите Фамилию и Имя контактного лица');
         $this->next('stepAskAboutPromocod');
@@ -200,8 +205,13 @@ class CreateSalon extends Conversation
      */
     public function stepAskAboutPromocod(NslabBot $bot):void
     {
-        $messageText = $bot->message()->text;
-        $this->salonDTO->setPerson($messageText);
+        $messageText = $bot->message()?->text;
+        if(empty($messageText)){
+            $bot->sendMessage('Ошибка: некорректное имя контактного лица, повторите попытку');
+            $this->next('stepRequestContactPersonName');
+            return;
+        }
+        $this->salonDTO()->setPerson($messageText);
         
         $text = 'Создать промокод?';
         $this->sendYesNoQuestion($bot, $text);
@@ -222,7 +232,7 @@ class CreateSalon extends Conversation
     {
         
         $this->deleteKeyboard($bot);
-        $answer = $bot->message()->text;
+        $answer = $bot->message()?->text;
         if($answer === 'Да'){
             $this->stepRequestPromocodeName($bot);
             return;
@@ -252,8 +262,7 @@ class CreateSalon extends Conversation
      */
     public function stepSavePromocode(NslabBot $bot): void
     {
-        $messageText = $bot->message()->text;
-        $bot->sendMessage($messageText);
+        $messageText = $bot->message()?->text ?: '';
         if (
             !empty($messageText) && 
             $messageText !== 'Нет' && 
@@ -264,7 +273,7 @@ class CreateSalon extends Conversation
             return;
         }
 
-        $this->salonDTO->setPromocode($messageText);
+        $this->salonDTO()->setPromocode($messageText);
         $text = 'Загрузить дополнительную фотографию?';
         $this->sendYesNoQuestion($bot, $text);
         $this->next('stepAnswerAboutAdditionalPhoto');
@@ -297,7 +306,7 @@ class CreateSalon extends Conversation
     public function stepAnswerAboutAdditionalPhoto(NslabBot $bot):void
     {
         $this->deleteKeyboard($bot);
-        $answer = $bot->message()->text;
+        $answer = $bot->message()?->text;
         if($answer === 'Да'){
             $this->stepGetAdditionalPhotos($bot);
             return;
@@ -364,7 +373,7 @@ class CreateSalon extends Conversation
      */
     public function stepAnswerAboutSocNetwork(NslabBot $bot):void
     {
-        $answer = $bot->message()->text;
+        $answer = $bot->message()?->text;
         if($answer === 'Да'){
             $this->stepRequestSocNetwork($bot);
             return;
@@ -395,8 +404,13 @@ class CreateSalon extends Conversation
      */
     public function stepGetSocNetworkLinks(NslabBot $bot):void
     {
-        $messageText = $bot->message()->text;
-        $this->salonDTO->setSocLinks($messageText);
+        $messageText = $bot->message()?->text;
+        if(empty($messageText)){
+            $bot->sendMessage('Ошибка: некорректная ссылка на соц.сеть, повторите попытку');
+            $this->stepRequestSocNetwork($bot);
+            return;
+        }
+        $this->salonDTO()->setSocLinks($messageText);
         $this->stepAskAboutSocialNetworks($bot, false);
     }
 
@@ -425,7 +439,7 @@ class CreateSalon extends Conversation
      */
     public function stepAnswerAboutSalonNote(NslabBot $bot):void
     {
-        $answer = $bot->message()->text;
+        $answer = $bot->message()?->text;
         if($answer === 'Да'){
             $this->requestSalonNote($bot);
             return;
@@ -457,12 +471,12 @@ class CreateSalon extends Conversation
      */
     public function getSalonNote(NslabBot $bot):void
     {
-        $messageText = $bot->message()->text;
+        $messageText = $bot->message()?->text;
         if(empty($messageText)){
             $this->stepCreateSalon($bot);
             return;
         }
-        $this->salonDTO->setNote($messageText);
+        $this->salonDTO()->setNote($messageText);
         $this->stepCreateSalon($bot);
     }
     
@@ -497,7 +511,7 @@ class CreateSalon extends Conversation
         $salonRepository = new SalonRepository($storage);// Save the salon data
         $this->errorHandler()->execute(
             function () use ($salonRepository) {
-                $salonRepository->save($this->salonDTO);
+                $salonRepository->save($this->salonDTO());
             },
             $bot,
             'Ошибка: не удалось сохранить данные о салоне.'
@@ -514,12 +528,16 @@ class CreateSalon extends Conversation
     {
         // Getting the message type
         $message = $bot->message();
-        $MessageType = $message->getType()->value;
+        $MessageType = $message?->getType();
         // Check if the message is a photo
-        if( $MessageType !== MessageType::PHOTO->value){
+        if( $MessageType?->value !== MessageType::PHOTO->value){
             return false;
         }
-        $photo = end($message->photo);
+        $photos = $bot->message()->photo ?? [];
+        if (empty($photos)) {
+            return false;
+        }
+        $photo = end($photos);
         $file = $bot->getFile($photo->file_id);
         $this->savePhoto($file, $photo->file_id);
         return true;
@@ -541,7 +559,7 @@ class CreateSalon extends Conversation
             }
             $savePath = rtrim($directory, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . basename($file->file_path);
             $file->save($savePath);
-            $this->salonDTO->setPhotos($file_id, $savePath);
+            $this->salonDTO()->setPhotos($file_id, $savePath);
         }
     }
     
@@ -554,13 +572,16 @@ class CreateSalon extends Conversation
     public function getLocation(NslabBot $bot): ?string
     {
         $message = $bot->message();
-        $messageType = $message->getType()->value;
-        if($messageType !== MessageType::LOCATION->value){
+        $messageType = $message?->getType();
+        if($messageType?->value !== MessageType::LOCATION->value){
             return null;
         }
         $location = $message->location;
-        $lat = $location->latitude;
-        $lng = $location->longitude;
+        $lat = $location?->latitude;
+        $lng = $location?->longitude;
+        if(empty($lat) || empty($lng)){
+            return null;
+        }
         $salonLocation = "https://www.google.com/maps/place/{$lat},{$lng}";
         return $salonLocation;
     }
@@ -573,15 +594,15 @@ class CreateSalon extends Conversation
      */
     public function showCurrentsalon(NslabBot $bot)
     {
-        $text = "<i>Информация о салоне:</i>\r\n<b>Название салона: </b>".$this->salonDTO->getName()."\r\n<b>Емайл-адресс:</b> ".$this->salonDTO->getEmail()."\r\n<b>Телефон:</b> ".$this->salonDTO->getPhone()."\r\n<b>Контактное Лицо:</b> ".$this->salonDTO->getPerson()."\r\n";
+        $text = "<i>Информация о салоне:</i>\r\n<b>Название салона: </b>".$this->salonDTO()->getName()."\r\n<b>Емайл-адресс:</b> ".$this->salonDTO()->getEmail()."\r\n<b>Телефон:</b> ".$this->salonDTO()->getPhone()."\r\n<b>Контактное Лицо:</b> ".$this->salonDTO()->getPerson()."\r\n";
 
-        $promocode = $this->salonDTO->getPromocode();
+        $promocode = $this->salonDTO()->getPromocode();
         if(!empty($promocode)){
             $text .= "<b>Промокод: </b>{$promocode}\r\n";
         }
-        $text .= "<b>Местоположение: </b><a href=\"".$this->salonDTO->getLocation()."\">Посмотреть на карте</a>\r\n";
+        $text .= "<b>Местоположение: </b><a href=\"".$this->salonDTO()->getLocation()."\">Посмотреть на карте</a>\r\n";
 
-        $socLinks = $this->salonDTO->getSocLinks();
+        $socLinks = $this->salonDTO()->getSocLinks();
         if(!empty($socLinks)){
             $text .= "<b>Cоциальные сети:</b>\r\n";
             $i = 1;
@@ -591,14 +612,14 @@ class CreateSalon extends Conversation
             }
         }
 
-        $note = $this->salonDTO->getNote();
+        $note = $this->salonDTO()->getNote();
         if(!empty($note)){
             $text .= "<b>Заметка о солоне: </b>".$note."\r\n";
         }
-
         $user = $bot->user();
-        $manager = $user->first_name;
-        $manager .= " (@{$user->username})";
+        $manager = $user?->first_name ?: 'Пользователь';
+        $username = $user?->username ?: ' Инкогнито';
+        $manager .= " (@{$username})";
         $text .= "\r\n<i>Менеджер NSlab: </i>{$manager}\r\n";
 
         $bot->sendMessage(
@@ -612,7 +633,7 @@ class CreateSalon extends Conversation
             parse_mode: ParseMode::HTML
         );
 
-        $photos = $this->salonDTO->getPhotos();
+        $photos = $this->salonDTO()->getPhotos();
         $media = [];
         foreach ($photos as $key => $value) {
             $media[] = InputMediaPhoto::make(
@@ -696,7 +717,7 @@ class CreateSalon extends Conversation
      *
      * @return SalonDTO
      */
-    private function initSalonDTO(): SalonDTO
+    private function salonDTO(): SalonDTO
     {
         return $this->salonDTO ??= new SalonDTO();
     }

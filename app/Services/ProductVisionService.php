@@ -48,7 +48,7 @@ class ProductVisionService
         if (!$response->hasFullTextAnnotation()) {
             return null;
         }
-        $text = $response->getFullTextAnnotation()->getText();
+        $text = $response->getFullTextAnnotation()?->getText();
         if(empty($text)){
             return null;
         }
